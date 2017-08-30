@@ -14,6 +14,8 @@ import time
 import re
 import threading 
 import multiprocessing
+#map reducing
+from multiprocessing import Pool
 
 base_path = "\\Users\\Carnage\\"
 file_path_ = base_path+"\Desktop\Arizona State\POST_OPT\GooglePlayProductivity"
@@ -25,19 +27,22 @@ serverErrorUrls = []
 """
 start_time = time.time()
 def main():
-    
+    os.chdir(file_path_)
     #threads = []
     
-    #creating process tasks for classes about and sdk
-    process = multiprocessing.Process(target=about, args=(file_path_,))
-    process2 = multiprocessing.Process(target=sdk,args=(file_path_,))
-    #starting the thread tasks 1 & 2 and then appending to threads list
-    process.start()
-    process2.start()
-    
-    process.join()
-    process2.join()
+    #creating process tasks for classes about and sdk and assigning to jobs
+    for file_type in glob.glob('*.htm'):
+        jobs = [multiprocessing.Process(target=about, args=(file_path_,)),
+                multiprocessing.Process(target=sdk,args=(file_path_,))]
+#    starting and joining the jobs once its done       
+        for j in jobs:
+            j.start()
 
+        for j in jobs:
+            j.join()
+
+    
+        break
         
     print("Finished Processing")
     print("--- %s seconds ---" % (time.time() - start_time))
