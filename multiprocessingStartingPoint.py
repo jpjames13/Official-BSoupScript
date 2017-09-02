@@ -14,13 +14,14 @@ def main():
 
     about_data_fileName = "about_dataTEST4"
     version_data_fileName = "version_dataTEST4"
+    sdk_info_fileName = "sdk_info"
 
     os.chdir(file_path)
     #writing headers
     writeAboutHeader(file_path,about_data_fileName)
     writeVersionHeader(file_path,version_data_fileName)
-    writeAboutErrorLogHeader()
-    writeCSVHeader()
+#   writeAboutErrorLogHeader()
+    writeCSVHeader(sdk_info_fileName)
     writeErrorLogHeader()
 
 
@@ -30,16 +31,10 @@ def main():
         if '_about' in file_type:
             process = multiprocessing.Process(target=aboutProcess, args=(file_type, about_data_fileName, version_data_fileName,))
             process.start()
-            #thread1.join()
-
-        #print("Finished Processing - About")
 
         elif '_sdk' in file_type:
-            process1 = multiprocessing.Process(target=sdkProcess,args=(file_type,))
+            process1 = multiprocessing.Process(target=sdkProcess,args=(file_type, sdk_info_fileName))
             process1.start()
-            #thread2.join()
-            
-        #print('\nFinished Processing SDK Pages')
 
 
 def readHTML(InputPath):
@@ -369,7 +364,7 @@ def WriteToAboutErrorLog(appId,url,exception):
     for i in row:         
         table.append(i)
     
-    with open('about_ErrorLog.csv', 'a',newline='') as f:
+    with open('ErrorLog.csv', 'a',newline='') as f:
         writer = csv.writer(f)  
         writer.writerow(table)
 
@@ -377,7 +372,7 @@ def WriteToAboutErrorLog(appId,url,exception):
 '''
     END OF METHOD
 '''
-
+'''
 ###############################################################################
 def writeAboutErrorLogHeader():
     header = ['App_ID', 'URL', 'Exception']
@@ -385,6 +380,7 @@ def writeAboutErrorLogHeader():
         dw = csv.DictWriter(f, fieldnames = header)
         dw.writeheader()
 ###############################################################################
+'''
 '''
     None type object conversion method for Ratings
 '''
@@ -481,7 +477,7 @@ def getAppName(soup):
                 appName = h1.text
     return appName
 
-#If there's an error in SDK, print to CSV
+#Check for server errror and return a bool
 def serverError(soup):
     serverError = soup.find('div',{'class':'card card-sm m-x-auto'})
 
@@ -527,6 +523,7 @@ def writeGenericErrorToErrorLog(url, appId, errorMessage):
         writer.writerow(row)
 
 
+#look for distinct element which SDK N/A or paid app page has
 def paidAppsNoSDKInfo(soup):
 
     paid = soup.find('div',{'class':'no-content-block'})
@@ -582,8 +579,8 @@ def returnTable(soup,appID):
     
     return table
 
-def writeToCsv(tableInput):
-    with open('sdk_Info.csv','a') as f:
+def writeToSdkCsv(tableInput, sdk_info_fileName):
+    with open(sdk_info_fileName+'.csv','a') as f:
         for i in range(len(tableInput)):
             writer = csv.writer(f)
             writer.writerow(tableInput[i])
@@ -594,18 +591,18 @@ def writeToCsv(tableInput):
     #f.close()
     #done = True
         
-def writeDotAsNullSDKInfo(soup, appID):
-    arrayToPrintForNoSDKInfoApps = [appID,getAppName(soup),u"\u2022",u"\u2022",u"\u2022",u"\u2022",u"\u2022"]
-    with open('sdk_Info.csv','a') as f:
+def writeDotAsNullSDKInfo(soup, appID, sdk_info_fileName):
+    arrayToPrintForNoSDKInfoApps = [appID,getAppName(soup),".",".",".",".","."]
+    with open(sdk_info_fileName+'.csv','a') as f:
         writer = csv.writer(f)
 
         writer.writerow(arrayToPrintForNoSDKInfoApps)
 
     #f.close()
     #done = True
-def writeCSVHeader():
+def writeCSVHeader(sdk_info_fileName):
     header = ["App_ID", "App_Name", "SDK_ID", "SDK_Name", "SDK_Type","Install_Uninstall_Date", "Status"]
-    with open('sdk_Info.csv','w+') as f:
+    with open(sdk_info_fileName+'.csv','w+') as f:
         dw = csv.DictWriter(f, fieldnames = header)
         dw.writeheader()
 
@@ -647,8 +644,9 @@ def aboutProcess(file_type, about_data_fileName, version_data_fileName):
         WriteToAboutErrorLog(appID,url,ex)
         pass
 
-def sdkProcess(file_type):
+def sdkProcess(file_type, sdk_info_fileName):
     try:
+#uncomment the next line to see error happens in which file
         print('Currently Processing ... '+file_type)
         url = file_path+file_type
         appID = getSDKID(url)
@@ -656,10 +654,10 @@ def sdkProcess(file_type):
         if serverError(soup):
             writeServerErrorToErrorLog(url,appID,soup)
         elif paidAppsNoSDKInfo(soup):
-            writeDotAsNullSDKInfo(soup,appID)
+            writeDotAsNullSDKInfo(soup,appID, sdk_info_fileName)
         else:
             dataTable = (returnTable(soup,appID))
-            writeToCsv(dataTable)
+            writeToSdkCsv(dataTable, sdk_info_fileName)
 
     except Exception:
         print("oops! exception")
