@@ -18,7 +18,7 @@ import multiprocessing
 from multiprocessing import Pool
 
 base_path = "\\Users\\Carnage\\"
-file_path_ = base_path+"\Desktop\Arizona State\POST_OPT\GooglePlayProductivity"
+file_path_ = base_path+"\Desktop\Arizona State\POST_OPT\iTunesProductivity"
 serverErrorUrls = []
 
 """
@@ -364,8 +364,8 @@ class about():
         for i in range(len(versions)):
             row = []
             row.append(appId)
-            row.append(appNames)
-            row.append(versions[i].replace("Version ",""))
+            row.append(appNames.replace(",",""))
+            row.append(versions[i].replace("Version ","").replace("v","").replace("V",""))
             row.append(versionYear[i]+" "+versionMonth[i])
             #row.append(versionYear[i])
             #the .replace function only works with strings
